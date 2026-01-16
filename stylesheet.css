@@ -1,0 +1,27 @@
+.systray-popup-grid {
+  padding: 6px;
+}
+
+.systray-item-button {
+  padding: 6px;
+  border-radius: 8px;
+  min-width: 40px;
+  min-height: 40px;
+  background-color: rgba(255,255,255,0.08);
+}
+
+.systray-item-button:hover {
+  background-color: rgba(255,255,255,0.14);
+}
+
+.systray-item-button:active {
+  background-color: rgba(255,255,255,0.20);
+}
+
+.systray-item-button StIcon {
+  icon-size: 24px;
+}
+
+.systray-dbusmenu {
+  border-radius: 10px;
+}

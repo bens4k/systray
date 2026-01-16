@@ -1,0 +1,6 @@
+{
+  "uuid": "systray@ab",
+  "name": "SysTray",
+  "description": "Show system tray icons in a popup grid.",
+  "shell-version": ["45", "46", "47", "48", "49"]
+}
