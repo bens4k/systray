@@ -21,9 +21,8 @@ mv systray@ab ~/.local/share/gnome-shell/extensions/
 
 ### (3) Restart GNOME Shell
 
-Xorg: `Alt + F2` → type `r` → Enter
-
-Wayland: log out and log back in
+- Xorg: `Alt + F2` → type `r` → `Enter`
+- Wayland: log out and log back in
 
 ### (4) Enable extension
 ```bash
