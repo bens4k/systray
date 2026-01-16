@@ -11,7 +11,7 @@ A minimal StatusNotifierItem (SNI/AppIndicator-style) host for GNOME Shell that 
 
 ```bash
 # 1) Clone
-git clone <your-repo-url> systray-popup
+git clone https://github.com/bens4k/systray systray-popup
 cd systray-popup
 
 # 2) Copy to local extensions directory
