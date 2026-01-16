@@ -9,23 +9,22 @@ A minimal StatusNotifierItem (SNI/AppIndicator-style) host for GNOME Shell that 
 
 ```bash
 # 1) Clone
-git clone https://github.com/bens4k/systray systray-popup
-cd systray-popup
+git clone https://github.com/bens4k/systray systray@ab
+```
 
-# 2) Copy to local extensions directory
-# Make sure the folder name matches metadata.json "uuid"
-UUID="systray@ab"
-mkdir -p ~/.local/share/gnome-shell/extensions/"$UUID"
-cp -r ./* ~/.local/share/gnome-shell/extensions/"$UUID"/
+```bash
+# 2) move to extensions foldler
+mv systray@ab ~/.local/share/gnome-shell/extensions/
 ```
 
 ## Restart GNOME Shell
 
 Xorg: `Alt + F2` → type `r` → Enter
+
 Wayland: log out and log back in
 
-## Then enable the extension
 ```bash
+# 3) Enable extension
 gnome-extensions enable systray@ab
 ```
 
