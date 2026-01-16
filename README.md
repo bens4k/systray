@@ -1,7 +1,5 @@
 # Windows 11 style system tray popup – GNOME Shell Extension
 
-
-Inline-style: 
 ![alt text](https://github.com/bens4k/systray/blob/master/screenshots/s_open.png "Open") ![alt text](https://github.com/bens4k/systray/blob/master/screenshots/s_closed.png "Closed")
 
 
