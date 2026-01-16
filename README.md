@@ -1,11 +1,6 @@
-# System Tray Popup – GNOME Shell Extension
+# Windows 11 style system tray popup – GNOME Shell Extension
 
 A minimal StatusNotifierItem (SNI/AppIndicator-style) host for GNOME Shell that collects tray icons into a popup grid (instead of showing them inline on the panel).
-
-## Requirements
-
-- GNOME Shell with GJS (typical GNOME installation)
-- Apps that expose tray icons via StatusNotifierItem (e.g. qBittorrent, etc.)
 
 ## Install (local)
 
