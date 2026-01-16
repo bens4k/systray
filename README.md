@@ -7,28 +7,30 @@ A minimal StatusNotifierItem (SNI/AppIndicator-style) host for GNOME Shell that 
 
 ## Install (local)
 
+### Clone repo
+
 ```bash
-# 1) Clone
 git clone https://github.com/bens4k/systray systray@ab
 ```
 
+### Move to extensions folder
+
 ```bash
-# 2) move to extensions foldler
 mv systray@ab ~/.local/share/gnome-shell/extensions/
 ```
 
-## Restart GNOME Shell
+### Restart GNOME Shell
 
 Xorg: `Alt + F2` → type `r` → Enter
 
 Wayland: log out and log back in
 
+### Enable extension
 ```bash
-# 3) Enable extension
 gnome-extensions enable systray@ab
 ```
 
-## Check logs
+### Check logs
 
 ```bash
 journalctl --user -f -o cat | grep -i systray
