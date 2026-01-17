@@ -9,6 +9,8 @@ import { StatusNotifierWatcherMinimal } from './watcher.js';
 
 export default class SysTrayMinimalExtension extends Extension.Extension {
   enable() {
+    this._settings = this.getSettings();
+
     // CSS
     this._cssFile = this.dir.get_child('stylesheet.css');
     getTheme().load_stylesheet(this._cssFile);
@@ -22,11 +24,11 @@ export default class SysTrayMinimalExtension extends Extension.Extension {
     this._DBusMenuProxyClass = Gio.DBusProxy.makeProxyWrapper(dbusMenuXml);
 
     // UI
-    this._hostButton = new PopupGridHost();
+    this._hostButton = new PopupGridHost(this._settings);
     Main.panel.addToStatusArea('systray-minimal', this._hostButton, 1, 'right');
 
     // Watcher
-    this._watcher = new StatusNotifierWatcherMinimal(this._hostButton, watcherXml, this._DBusMenuProxyClass);
+    this._watcher = new StatusNotifierWatcherMinimal(this._hostButton, watcherXml, this._DBusMenuProxyClass, this._settings);
   }
 
   disable() {
@@ -39,6 +41,8 @@ export default class SysTrayMinimalExtension extends Extension.Extension {
       this._hostButton.destroy();
       this._hostButton = null;
     }
+
+    this._settings = null;
 
     if (this._cssFile) {
       try { getTheme().unload_stylesheet(this._cssFile); } catch {}

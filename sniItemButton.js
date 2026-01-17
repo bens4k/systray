@@ -3,18 +3,20 @@ import GLib from 'gi://GLib';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
 
-import { CELL_SIZE } from './constants.js';
 import { isObjectPath, safeText, unpack, pickBestPixmap, pixmapToFileIcon } from './utils.js';
 import { MinimalDbusMenu } from './dbusMenu.js';
 
 export class SniItemButton {
-  constructor(busName, objPath, DBusMenuProxyClass) {
+  constructor(busName, objPath, settings, DBusMenuProxyClass) {
     this.busName = busName;
     this.objPath = objPath;
+
+    this._settings = settings;
     this._DBusMenuProxyClass = DBusMenuProxyClass;
 
     this._menuUnsupported = false;
     this._openingMenu = false;
+    this._destroyed = false;
 
     this.actor = new St.Button({
       style_class: 'systray-item-button',
@@ -28,7 +30,11 @@ export class SniItemButton {
     this.actor.has_tooltip = true;
     this.actor.tooltip_text = '';
 
-    this.actor.set_size(CELL_SIZE, CELL_SIZE);
+    this._applyCellSize();
+    this._settingsChangedId = this._settings?.connect?.('changed::cell-size', () => {
+      this._applyCellSize();
+    }) ?? 0;
+
     this.actor.x_expand = false;
     this.actor.y_expand = false;
     this.actor.x_align = Clutter.ActorAlign.CENTER;
@@ -39,7 +45,6 @@ export class SniItemButton {
       icon_name: 'dialog-information-symbolic',
       icon_size: 24,
     });
-
     this.actor.set_child(this._icon);
 
     this._clickedId = this.actor.connect('clicked', () => {
@@ -57,7 +62,12 @@ export class SniItemButton {
           return Clutter.EVENT_STOP;
 
         if (!this._dbusMenu)
-          this._dbusMenu = new MinimalDbusMenu(this.busName, this._menuPath, this.actor, this._DBusMenuProxyClass);
+          this._dbusMenu = new MinimalDbusMenu(
+            this.busName,
+            this._menuPath,
+            this.actor,
+            this._DBusMenuProxyClass
+          );
 
         this._openingMenu = true;
         this._dbusMenu.open().catch(() => {}).finally(() => {
@@ -76,6 +86,11 @@ export class SniItemButton {
       this._callItemMethod('ContextMenu', '(ii)', [x | 0, y | 0]);
       return Clutter.EVENT_STOP;
     });
+  }
+
+  _applyCellSize() {
+    const size = this._settings ? this._settings.get_int('cell-size') : 30;
+    try { this.actor.set_size(size, size); } catch {}
   }
 
   async init() {
@@ -176,6 +191,11 @@ export class SniItemButton {
     if (this._destroyed)
       return;
     this._destroyed = true;
+
+    if (this._settings && this._settingsChangedId) {
+      try { this._settings.disconnect(this._settingsChangedId); } catch {}
+      this._settingsChangedId = 0;
+    }
 
     if (this.actor && this._clickedId) {
       try { this.actor.disconnect(this._clickedId); } catch {}

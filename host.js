@@ -1,15 +1,17 @@
 import St from 'gi://St';
-import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
+import GLib from 'gi://GLib';
 
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 
-import { CELL_SIZE } from './constants.js';
-
 export const PopupGridHost = GObject.registerClass(
 class PopupGridHost extends PanelMenu.Button {
-  _init() {
+  _init(settings) {
     super._init(0.0, 'SysTray');
+    this._settings = settings;
+
+    this._maxCols = 4; // keep as-is (not user-configurable per your request)
+    this._buttons = [];
 
     this._panelIcon = new St.Icon({
       icon_name: 'pan-up-symbolic',
@@ -19,24 +21,29 @@ class PopupGridHost extends PanelMenu.Button {
 
     this._openStateId = this.menu.connect('open-state-changed', (_m, isOpen) => {
       this._panelIcon.icon_name = isOpen ? 'pan-down-symbolic' : 'pan-up-symbolic';
+
+      // When opening, apply sizing after allocation settles
+      GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+        this._syncPopupSize();
+        return GLib.SOURCE_REMOVE;
+      });
     });
-
-    this._cell = CELL_SIZE;
-    this._pad = 8;
-    this._spacing = 6;
-    this._maxCols = 4;
-
-    this._buttons = [];
 
     this._rowsBox = new St.BoxLayout({
       vertical: true,
       x_expand: true,
       y_expand: true,
-      style: `spacing: ${this._spacing}px;`,
     });
-
     this.menu.box.add_child(this._rowsBox);
-    this.menu.box.set_style(`padding: ${this._pad}px;`);
+
+    this._readLayoutSettings();
+
+    // Live updates
+    this._settingsChangedId = this._settings.connect('changed', () => {
+      this._readLayoutSettings();
+      this._applyCellSizeToAllButtons();
+      this._rebuildRows();
+    });
 
     this._syncPopupSize();
   }
@@ -46,7 +53,27 @@ class PopupGridHost extends PanelMenu.Button {
       try { this.menu.disconnect(this._openStateId); } catch {}
       this._openStateId = 0;
     }
+    if (this._settingsChangedId) {
+      try { this._settings.disconnect(this._settingsChangedId); } catch {}
+      this._settingsChangedId = 0;
+    }
     super.destroy();
+  }
+
+  _readLayoutSettings() {
+    this._cell = this._settings.get_int('cell-size');
+    this._pad = this._settings.get_int('popup-padding');
+    this._spacing = this._settings.get_int('spacing');
+    this._extraW = this._settings.get_int('extra-width');
+    this._extraH = this._settings.get_int('extra-height');
+
+    this.menu.box.set_style(`padding: ${this._pad}px;`);
+  }
+
+  _applyCellSizeToAllButtons() {
+    for (const btn of this._buttons) {
+      try { btn.set_size(this._cell, this._cell); } catch {}
+    }
   }
 
   _rebuildRows() {
@@ -82,15 +109,10 @@ class PopupGridHost extends PanelMenu.Button {
     const gridW = cols * this._cell + (cols - 1) * this._spacing;
     const gridH = rows * this._cell + (rows - 1) * this._spacing;
 
-    const EXTRA_W = 2;
-    const EXTRA_H = 10;
+    const w = this._pad * 2 + gridW + this._extraW;
+    const h = this._pad * 2 + gridH + this._extraH;
 
-    const w = this._pad * 2 + gridW + EXTRA_W;
-    const h = this._pad * 2 + gridH + EXTRA_H;
-
-    this.menu.box.set_style(`padding: ${this._pad}px;`);
     this._rowsBox.set_size(gridW, gridH);
-
     this.menu.box.set_size(w, h);
     this.menu.actor.set_size(w, h);
 

@@ -5,7 +5,8 @@ import { BUS_NAME, OBJ_PATH, DEFAULT_ITEM_OBJECT_PATH } from './constants.js';
 import { SniItemButton } from './sniItemButton.js';
 
 export class StatusNotifierWatcherMinimal {
-  constructor(hostButton, watcherIfaceXml, DBusMenuProxyClass) {
+  constructor(hostButton, watcherIfaceXml, DBusMenuProxyClass, settings) {
+    this._settings = settings;
     this._hostButton = hostButton;
     this._watcherIfaceXml = watcherIfaceXml;
     this._DBusMenuProxyClass = DBusMenuProxyClass;
@@ -100,7 +101,7 @@ export class StatusNotifierWatcherMinimal {
 
       const senderUnique = invocation.get_sender();
 
-      const button = new SniItemButton(busName, objPath, this._DBusMenuProxyClass);
+      const button = new SniItemButton(busName, objPath, this._settings, this._DBusMenuProxyClass);
       this._items.set(key, { busName, senderUnique, objPath, button });
 
       this._hostButton.addButton(button.actor);

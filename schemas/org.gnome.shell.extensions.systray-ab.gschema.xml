@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.systray-ab" path="/org/gnome/shell/extensions/systray-ab/">
+    <key name="cell-size" type="i">
+      <default>30</default>
+      <summary>Cell size</summary>
+      <description>Size (px) of each tray icon cell.</description>
+    </key>
+
+    <key name="popup-padding" type="i">
+      <default>8</default>
+      <summary>Popup padding</summary>
+      <description>Padding (px) around the grid inside the popup.</description>
+    </key>
+
+    <key name="spacing" type="i">
+      <default>6</default>
+      <summary>Grid spacing</summary>
+      <description>Spacing (px) between icon cells.</description>
+    </key>
+
+    <key name="extra-width" type="i">
+      <default>2</default>
+      <summary>Extra width</summary>
+      <description>Extra pixels added to popup width (theme border/shadow wiggle room).</description>
+    </key>
+
+    <key name="extra-height" type="i">
+      <default>10</default>
+      <summary>Extra height</summary>
+      <description>Extra pixels added to popup height (theme border/shadow wiggle room).</description>
+    </key>
+  </schema>
+</schemalist>
