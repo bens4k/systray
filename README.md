@@ -5,6 +5,11 @@ A minimal StatusNotifierItem (SNI/AppIndicator-style) host for GNOME Shell that 
 ![alt text](https://github.com/bens4k/systray/blob/master/screenshots/s_open.png "Open")
 
 
+## Supported Gnome versions
+
+Only tested in Gnome 49.
+
+
 ## Install (local)
 
 ### (1) Clone repo
