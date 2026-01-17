@@ -17,6 +17,7 @@ export default class SysTrayPrefs extends ExtensionPreferences {
       description: '',
     });
 
+    group.add(this._spinRow(settings, 'max-columns', 'Max columns', 1, 20, 1));
     group.add(this._spinRow(settings, 'cell-size', 'Cell size', 16, 96, 1));
     group.add(this._spinRow(settings, 'popup-padding', 'Popup padding', 0, 64, 1));
     group.add(this._spinRow(settings, 'spacing', 'Spacing', 0, 64, 1));

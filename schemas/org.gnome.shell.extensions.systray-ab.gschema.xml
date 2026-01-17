@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
   <schema id="org.gnome.shell.extensions.systray-ab" path="/org/gnome/shell/extensions/systray-ab/">
+    <key name="max-columns" type="i">
+      <default>4</default>
+      <summary>Max grid columns</summary>
+      <description>Popup max grid columns</description>
+    </key>
     <key name="cell-size" type="i">
       <default>30</default>
       <summary>Cell size</summary>

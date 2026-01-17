@@ -11,7 +11,6 @@ export function readTextFile(gfile) {
   if (typeof bytes === 'string')
     return bytes;
 
-  // GJS usually returns Uint8Array; tolerate other array-likes
   const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
   return new TextDecoder('utf-8').decode(u8);
 }

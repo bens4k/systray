@@ -25,7 +25,7 @@ export class SniItemButton {
       track_hover: true,
     });
 
-    // tooltip may or may not show on some shells; harmless to keep
+    // tooltip
     this.actor.reactive = true;
     this.actor.has_tooltip = true;
     this.actor.tooltip_text = '';

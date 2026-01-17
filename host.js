@@ -9,8 +9,6 @@ class PopupGridHost extends PanelMenu.Button {
   _init(settings) {
     super._init(0.0, 'SysTray');
     this._settings = settings;
-
-    this._maxCols = 4; // keep as-is (not user-configurable per your request)
     this._buttons = [];
 
     this._panelIcon = new St.Icon({
@@ -61,6 +59,7 @@ class PopupGridHost extends PanelMenu.Button {
   }
 
   _readLayoutSettings() {
+    this._maxCols = this._settings.get_int('max-columns');
     this._cell = this._settings.get_int('cell-size');
     this._pad = this._settings.get_int('popup-padding');
     this._spacing = this._settings.get_int('spacing');
