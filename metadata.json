@@ -3,5 +3,6 @@
   "name": "SysTray",
   "description": "Show system tray icons in a popup grid.",
   "shell-version": ["49"],
-  "settings-schema": "org.gnome.shell.extensions.systray-ab"
+  "settings-schema": "org.gnome.shell.extensions.systray-ab",
+  "url": "https://github.com/bens4k/systray"
 }
