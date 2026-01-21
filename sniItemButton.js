@@ -25,6 +25,9 @@ export class SniItemButton {
     this._sniProxy = null;
     this._propsChangedId = 0;
 
+    this._sniSignalSubIds = [];
+    this._refreshIdleId = 0;
+
     this.actor = new St.Button({
       style_class: 'systray-item-button',
       can_focus: true,
@@ -32,7 +35,6 @@ export class SniItemButton {
       track_hover: true,
     });
 
-    // tooltip (may or may not show on some shells; harmless)
     this.actor.reactive = true;
     this.actor.has_tooltip = true;
     this.actor.tooltip_text = '';
@@ -62,7 +64,6 @@ export class SniItemButton {
       if (btn !== 3)
         return Clutter.EVENT_PROPAGATE;
 
-      // Prefer DBusMenu if provided
       if (isObjectPath(this._menuPath) && !this._menuUnsupported) {
         if (this._openingMenu)
           return Clutter.EVENT_STOP;
@@ -101,6 +102,53 @@ export class SniItemButton {
     try { this.actor.set_size(size, size); } catch { }
   }
 
+  _queueRefresh() {
+    if (this._destroyed)
+      return;
+
+    if (this._refreshIdleId)
+      return;
+
+    this._refreshIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+      this._refreshIdleId = 0;
+      if (this._destroyed)
+        return GLib.SOURCE_REMOVE;
+
+      this._refreshFromProperties(false).catch(() => { });
+      return GLib.SOURCE_REMOVE;
+    });
+  }
+
+  _subscribeSniSignals() {
+    const signals = [
+      'NewIcon',
+      'NewAttentionIcon',
+      'NewOverlayIcon',
+
+      'NewTitle',
+      'NewToolTip',
+      'NewStatus',
+
+      'NewMenu',
+    ];
+
+    for (const sig of signals) {
+      try {
+        const id = Gio.DBus.session.signal_subscribe(
+          this.busName,
+          'org.kde.StatusNotifierItem',
+          sig,
+          this.objPath,
+          null,
+          Gio.DBusSignalFlags.NONE,
+          () => this._queueRefresh()
+        );
+        this._sniSignalSubIds.push(id);
+      } catch {
+      }
+    }
+  }
+
   async init() {
     try {
       this._sniProxy = await Gio.DBusProxy.new_for_bus_async(
@@ -117,12 +165,14 @@ export class SniItemButton {
         if (this._destroyed)
           return;
 
-        this._refreshFromProperties(false).catch(() => { });
+        this._queueRefresh();
       });
     } catch {
       this._sniProxy = null;
       this._propsChangedId = 0;
     }
+
+    this._subscribeSniSignals();
 
     await this._refreshFromProperties(true);
   }
@@ -151,7 +201,7 @@ export class SniItemButton {
     }
 
     args.push(
-      bytesToGBytes(bytesU8), 
+      bytesToGBytes(bytesU8),
       Cogl.PixelFormat.ARGB_8888,
       w,
       h,
@@ -241,10 +291,10 @@ export class SniItemButton {
       this._menuPath = newMenuPath;
 
       if (this._dbusMenu) {
-        try { this._dbusMenu.destroy(); } catch {}
+        try { this._dbusMenu.destroy(); } catch { }
         this._dbusMenu = null;
       }
-      this._menuUnsupported = false; // new path might be valid even if old wasn't
+      this._menuUnsupported = false;
     }
 
     const title = unpack(props.Title) ?? null;
@@ -252,18 +302,16 @@ export class SniItemButton {
     const iconPixmaps = unpack(props.IconPixmap) ?? null;
     const iconThemePath = unpack(props.IconThemePath) ?? null;
 
-    //log(`SNI ${this.busName}${this.objPath} IconName="${iconName}" ThemePath="${iconThemePath}" Pixmaps=${Array.isArray(iconPixmaps) ? iconPixmaps.length : (iconPixmaps ? Object.values(iconPixmaps).length : 0)}`);
-
     const tip = title ? safeText(title) : safeText(`${this.busName}${this.objPath}`);
     this.actor.tooltip_text = tip;
 
     if (typeof iconThemePath === 'string' && iconThemePath.length > 0 &&
-      typeof iconName === 'string' && iconName.length > 0) {
+        typeof iconName === 'string' && iconName.length > 0) {
       const gicon = this._getGiconFromThemePath(iconName, iconThemePath, 24);
       if (gicon) {
         this._icon.icon_name = null;
         this._icon.gicon = gicon;
-        this._icon.set({ content: null }); // ensure pixmap content not stuck
+        this._icon.set({ content: null });
         return;
       }
     }
@@ -313,6 +361,11 @@ export class SniItemButton {
       return;
     this._destroyed = true;
 
+    if (this._refreshIdleId) {
+      try { GLib.source_remove(this._refreshIdleId); } catch { }
+      this._refreshIdleId = 0;
+    }
+
     if (this._settings && this._settingsChangedId) {
       try { this._settings.disconnect(this._settingsChangedId); } catch { }
       this._settingsChangedId = 0;
@@ -323,6 +376,11 @@ export class SniItemButton {
       this._propsChangedId = 0;
     }
     this._sniProxy = null;
+
+    for (const id of this._sniSignalSubIds) {
+      try { Gio.DBus.session.signal_unsubscribe(id); } catch { }
+    }
+    this._sniSignalSubIds = [];
 
     if (this.actor && this._clickedId) {
       try { this.actor.disconnect(this._clickedId); } catch { }
