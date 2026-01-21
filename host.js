@@ -2,6 +2,7 @@ import St from 'gi://St';
 import GObject from 'gi://GObject';
 import GLib from 'gi://GLib';
 import Clutter from 'gi://Clutter';
+import Meta from 'gi://Meta';
 
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 
@@ -36,6 +37,7 @@ export const PopupGridHost = GObject.registerClass(
       });
 
       this.menu.box.add_child(this._rowsBox);
+      this.menu.actor.set_style(`min-width:0px;`);
 
       // setting updates
       this._settingsChangedId = this._settings.connect('changed', () => {
@@ -62,6 +64,7 @@ export const PopupGridHost = GObject.registerClass(
         try { this._settings.disconnect(this._settingsChangedId); } catch { }
         this._settingsChangedId = 0;
       }
+
       super.destroy();
     }
 
@@ -111,22 +114,66 @@ export const PopupGridHost = GObject.registerClass(
       this._syncPopupSize();
     }
 
+    _syncPopupWidthToContent() {
+      if (!this.menu.isOpen || !this.menu.actor.mapped)
+        return;
+
+      this._rowsBox.set_width(-1);
+      this.menu.box.set_width(-1);
+      this.menu.actor.set_width(-1);
+
+      this._rowsBox.queue_relayout();
+      this.menu.box.queue_relayout();
+      this.menu.actor.queue_relayout();
+
+      let [, natW] = this.menu.actor.get_preferred_width(-1);
+
+      let borderW = 0;
+      try {
+        const node = this.menu.box.get_theme_node();
+        borderW =
+          node.get_length('border-left-width') +
+          node.get_length('border-right-width');
+      } catch { }
+
+      if (natW <= 0) {
+        const n = this._buttons.length;
+        const cols = Math.max(1, Math.min(this._maxCols, n));
+        const cell = Math.max(1, this._cell);
+        const spacing = Math.max(0, this._spacing);
+        const pad = Math.max(0, this._pad);
+        natW = cols * cell + (cols - 1) * spacing + pad * 2 + borderW;
+      } else {
+        natW = natW + borderW;
+      }
+
+      const targetW = Math.ceil(natW) + 2;
+
+      this.menu.actor.set_width(targetW);
+      this.menu.box.set_width(targetW);
+      this.menu.actor.queue_relayout();
+    }
+
     _syncPopupSize() {
       const spacing = Math.max(0, this._spacing);
       const pad = Math.max(0, this._pad);
 
-      this.menu.box.set_style(`padding:${pad}px;`);
+      this.menu.actor.set_style('min-width: 0px;');
+      this.menu.box.set_style(`padding:${pad}px; min-width: 0px;`);
+
       this._rowsBox.set_style(`spacing:${spacing}px;`);
 
+      this.menu.actor.x_expand = false;
+      this.menu.box.x_expand = false;
       this._rowsBox.x_expand = false;
-      this._rowsBox.y_expand = false;
 
       this.menu.box.x_align = Clutter.ActorAlign.START;
-      this.menu.box.y_align = Clutter.ActorAlign.START;
+      this._rowsBox.x_align = Clutter.ActorAlign.START;
 
-      this.menu.actor.queue_relayout();
-      this.menu.box.queue_relayout();
-      this._rowsBox.queue_relayout();
+      global.compositor.get_laters().add(Meta.LaterType.BEFORE_REDRAW, () => {
+        this._syncPopupWidthToContent();
+        return GLib.SOURCE_REMOVE;
+      });
     }
 
     addButton(button) {

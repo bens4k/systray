@@ -7,7 +7,7 @@
       <description>Popup max grid columns</description>
     </key>
     <key name="cell-size" type="i">
-      <default>30</default>
+      <default>35</default>
       <summary>Cell size</summary>
       <description>Size (px) of each tray icon cell.</description>
     </key>
@@ -19,7 +19,7 @@
     </key>
 
     <key name="spacing" type="i">
-      <default>6</default>
+      <default>8</default>
       <summary>Grid spacing</summary>
       <description>Spacing (px) between icon cells.</description>
     </key>
