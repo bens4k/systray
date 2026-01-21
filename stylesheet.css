@@ -25,3 +25,12 @@
 .systray-dbusmenu {
   border-radius: 10px;
 }
+
+.systray-popup {
+  min-width: 0px;
+}
+
+.systray-popup .popup-menu-content,
+.systray-popup-content {
+  min-width: 0px;
+}
