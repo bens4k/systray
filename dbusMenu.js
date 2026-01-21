@@ -69,14 +69,23 @@ export class MinimalDbusMenu {
       });
     }
 
+    // determine open side
+    const [px, py] = global.get_pointer();
+    const monitor = Main.layoutManager.monitors[global.display.get_current_monitor()];
+    const side = (py > (monitor.y + monitor.height * 0.6)) ? St.Side.BOTTOM : St.Side.TOP;
+
     if (!this._menu) {
-      this._menu = new PopupMenu.PopupMenu(this._sourceActor, 0.5, St.Side.TOP);
+      this._menu = new PopupMenu.PopupMenu(this._sourceActor, 0.5, side);
       this._menu.actor.add_style_class_name('systray-dbusmenu');
       Main.uiGroup.add_child(this._menu.actor);
       this._menu.actor.hide();
 
       this._menuManager = new PopupMenu.PopupMenuManager(this._sourceActor);
       this._menuManager.addMenu(this._menu);
+    }
+    else {
+      if (typeof this._menu.setArrowSide === 'function')
+        this._menu.setArrowSide(side);
     }
 
     await this._rebuild();

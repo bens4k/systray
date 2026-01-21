@@ -23,17 +23,5 @@
       <summary>Grid spacing</summary>
       <description>Spacing (px) between icon cells.</description>
     </key>
-
-    <key name="extra-width" type="i">
-      <default>2</default>
-      <summary>Extra width</summary>
-      <description>Extra pixels added to popup width (theme border/shadow wiggle room).</description>
-    </key>
-
-    <key name="extra-height" type="i">
-      <default>10</default>
-      <summary>Extra height</summary>
-      <description>Extra pixels added to popup height (theme border/shadow wiggle room).</description>
-    </key>
   </schema>
 </schemalist>

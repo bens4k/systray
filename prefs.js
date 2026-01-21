@@ -21,9 +21,7 @@ export default class SysTrayPrefs extends ExtensionPreferences {
     group.add(this._spinRow(settings, 'cell-size', 'Cell size', 16, 96, 1));
     group.add(this._spinRow(settings, 'popup-padding', 'Popup padding', 0, 64, 1));
     group.add(this._spinRow(settings, 'spacing', 'Spacing', 0, 64, 1));
-    group.add(this._spinRow(settings, 'extra-width', 'Extra width', 0, 64, 1));
-    group.add(this._spinRow(settings, 'extra-height', 'Extra height', 0, 128, 1));
-
+    
     page.add(group);
     window.add(page);
   }
