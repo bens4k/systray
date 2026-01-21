@@ -34,3 +34,8 @@
 .systray-popup-content {
   min-width: 0px;
 }
+
+.systray-empty-label {
+  color: rgba(255, 255, 255, 0.45);
+  margin: 8px 10px;
+}

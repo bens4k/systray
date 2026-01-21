@@ -30,7 +30,7 @@ export const PopupGridHost = GObject.registerClass(
 
         this._idleSyncId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
           this._idleSyncId = 0;
-          if (!this.get_parent()) // already destroyed/removed
+          if (!this.get_parent())
             return GLib.SOURCE_REMOVE;
 
           this._syncPopupSize();
@@ -46,6 +46,15 @@ export const PopupGridHost = GObject.registerClass(
         y_align: Clutter.ActorAlign.START,
       });
 
+      this._emptyLabel = new St.Label({
+        text: 'Empty',
+        style_class: 'systray-empty-label',
+        x_align: Clutter.ActorAlign.START,
+        y_align: Clutter.ActorAlign.CENTER,
+      });
+      this._emptyLabel.visible = true;
+
+      this.menu.box.add_child(this._emptyLabel);
       this.menu.box.add_child(this._rowsBox);
 
       // setting updates
@@ -68,6 +77,7 @@ export const PopupGridHost = GObject.registerClass(
       });
 
       this._readLayoutSettings();
+      this._rebuildRows();
       this._syncPopupSize();
     }
 
@@ -101,6 +111,11 @@ export const PopupGridHost = GObject.registerClass(
       }
     }
 
+    _syncEmptyState() {
+      if (this._emptyLabel)
+        this._emptyLabel.visible = this._buttons.length === 0;
+    }
+
     _rebuildRows() {
       for (const child of this._rowsBox.get_children())
         this._rowsBox.remove_child(child);
@@ -129,6 +144,9 @@ export const PopupGridHost = GObject.registerClass(
         row.add_child(btn);
         col++;
       }
+
+      // NEW: toggle placeholder after rebuilding
+      this._syncEmptyState();
 
       this._syncPopupSize();
     }
@@ -170,4 +188,5 @@ export const PopupGridHost = GObject.registerClass(
 
       this._rebuildRows();
     }
-  });
+  }
+);
