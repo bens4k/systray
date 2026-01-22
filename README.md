@@ -33,9 +33,18 @@ mv systray@ab ~/.local/share/gnome-shell/extensions/
 ```bash
 gnome-extensions enable systray@ab
 ```
-
+<!-- 
 ### Check logs
 
 ```bash
 journalctl --user -f -o cat | grep -i systray
-```
+``` -->
+
+## Known issues
+
+- Button tooltips not working
+
+## Next
+
+- Add inline icons
+- Drag & drop (reorder + move between inline & popup)
