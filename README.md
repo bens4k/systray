@@ -1,6 +1,6 @@
-# Windows style system tray popup – GNOME Shell Extension
+# Windows style system tray – GNOME Shell Extension
 
-A minimal StatusNotifierItem (SNI/AppIndicator-style) host for GNOME Shell that collects tray icons into a popup grid (instead of showing them inline on the panel).
+A minimal StatusNotifierItem (SNI/AppIndicator-style) host for GNOME Shell that collects tray icons into a popup grid.
 
 ![alt text](https://github.com/bens4k/systray/blob/master/screenshots/s_open.png "Open")
 
