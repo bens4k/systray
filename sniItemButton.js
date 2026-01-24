@@ -60,6 +60,15 @@ export class SniItemButton {
     });
 
     this._pressId = this.actor.connect('button-press-event', (_a, event) => {
+      const type = event.type?.() ?? event.get_type?.();
+
+      if (type !== Clutter.EventType.BUTTON_PRESS &&
+        type !== Clutter.EventType.BUTTON_RELEASE &&
+        type !== Clutter.EventType.PAD_BUTTON_PRESS &&
+        type !== Clutter.EventType.PAD_BUTTON_RELEASE) {
+        return Clutter.EVENT_PROPAGATE;
+      }
+
       const btn = event.get_button?.() ?? 0;
       if (btn !== 3)
         return Clutter.EVENT_PROPAGATE;
@@ -230,11 +239,9 @@ export class SniItemButton {
     if (!iconName || !themePath)
       return null;
 
-    if (iconName.includes('.')) {
-      const parts = iconName.split('.');
-      const ext = parts[parts.length - 1].toLowerCase();
-      if (ext === 'png' || ext === 'svg')
-        iconName = parts.slice(0, -1).join('.');
+    for (const ext of ['.png', '.svg', '.xpm']) {
+      if (iconName.toLowerCase().endsWith(ext))
+        iconName = iconName.slice(0, -ext.length);
     }
 
     if (!this._privateIconTheme)
@@ -260,6 +267,64 @@ export class SniItemButton {
 
     const file = Gio.File.new_for_path(filename);
     return new Gio.FileIcon({ file });
+  }
+
+  _iconNameFallbacks(iconName) {
+    if (typeof iconName !== 'string' || iconName.length === 0)
+      return [];
+
+    let name = iconName;
+
+    for (const ext of ['.png', '.svg', '.xpm']) {
+      if (name.toLowerCase().endsWith(ext))
+        name = name.slice(0, -ext.length);
+    }
+
+    const out = [name];
+
+    // tray/status variants commonly used by indicators
+    const suffixes = ['-status', '-panel', '-tray', '-indicator', '-symbolic'];
+    for (const s of suffixes) {
+      if (name.endsWith(s))
+        out.push(name.slice(0, -s.length));
+    }
+
+    // progressively chop on '-' (foo-bar-baz -> foo-bar -> foo)
+    const parts = name.split('-');
+    while (parts.length > 1) {
+      parts.pop();
+      out.push(parts.join('-'));
+    }
+
+    return [...new Set(out)].filter(Boolean);
+  }
+
+  _setIconFromThemeWithFallbacks(iconName, sizePx) {
+    const cache = St.TextureCache.get_default();
+    const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+
+    for (const candidate of this._iconNameFallbacks(iconName)) {
+      try {
+        const themed = new Gio.ThemedIcon({ name: candidate });
+
+        // GNOME Shell 49 / St API v18:
+        // load_gicon(theme_node, icon, size, paint_scale, resource_scale)
+        const actor = cache.load_gicon(null, themed, sizePx, scale, 1.0);
+
+        if (!actor)
+          continue;
+
+        // Use gicon (not icon_name) so we control the resolved name
+        this._icon.icon_name = null;
+        this._icon.gicon = themed;
+        this._icon.set({ content: null });
+        return true;
+      } catch {
+        // try next candidate
+      }
+    }
+
+    return false;
   }
 
   async _refreshFromProperties(isInitial = false) {
@@ -302,11 +367,14 @@ export class SniItemButton {
     const iconPixmaps = unpack(props.IconPixmap) ?? null;
     const iconThemePath = unpack(props.IconThemePath) ?? null;
 
+    //log(`Systray: iconName=${iconName}, iconPixmaps=${iconPixmaps}, iconThemePath=${iconThemePath}`);
+
     const tip = title ? safeText(title) : safeText(`${this.busName}${this.objPath}`);
     this.actor.tooltip_text = tip;
 
+    // 1) theme path override if provided
     if (typeof iconThemePath === 'string' && iconThemePath.length > 0 &&
-        typeof iconName === 'string' && iconName.length > 0) {
+      typeof iconName === 'string' && iconName.length > 0) {
       const gicon = this._getGiconFromThemePath(iconName, iconThemePath, 24);
       if (gicon) {
         this._icon.icon_name = null;
@@ -316,19 +384,13 @@ export class SniItemButton {
       }
     }
 
+    // 2) default theme lookup using fallbacks (e.g. org.remmina.Remmina-status -> org.remmina.Remmina)
     if (typeof iconName === 'string' && iconName.length > 0) {
-      try {
-        const theme = St.IconTheme.get_default();
-        const info = theme?.lookup_icon?.(iconName, 24, 0);
-        if (info) {
-          this._icon.gicon = null;
-          this._icon.icon_name = iconName;
-          this._icon.set({ content: null });
-          return;
-        }
-      } catch { }
+      if (this._setIconFromThemeWithFallbacks(iconName, 24))
+        return;
     }
 
+    // 3) pixmap fallback
     if (iconPixmaps && this._applyPixmapIcon(iconPixmaps, 24))
       return;
 
