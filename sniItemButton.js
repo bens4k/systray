@@ -282,14 +282,14 @@ export class SniItemButton {
 
     const out = [name];
 
-    // tray/status variants commonly used by indicators
+    // common variants
     const suffixes = ['-status', '-panel', '-tray', '-indicator', '-symbolic'];
     for (const s of suffixes) {
       if (name.endsWith(s))
         out.push(name.slice(0, -s.length));
     }
 
-    // progressively chop on '-' (foo-bar-baz -> foo-bar -> foo)
+    // progressively chop on '-'
     const parts = name.split('-');
     while (parts.length > 1) {
       parts.pop();
@@ -307,14 +307,11 @@ export class SniItemButton {
       try {
         const themed = new Gio.ThemedIcon({ name: candidate });
 
-        // GNOME Shell 49 / St API v18:
-        // load_gicon(theme_node, icon, size, paint_scale, resource_scale)
         const actor = cache.load_gicon(null, themed, sizePx, scale, 1.0);
 
         if (!actor)
           continue;
 
-        // Use gicon (not icon_name) so we control the resolved name
         this._icon.icon_name = null;
         this._icon.gicon = themed;
         this._icon.set({ content: null });
@@ -372,7 +369,7 @@ export class SniItemButton {
     const tip = title ? safeText(title) : safeText(`${this.busName}${this.objPath}`);
     this.actor.tooltip_text = tip;
 
-    // 1) theme path override if provided
+    // theme path override if provided
     if (typeof iconThemePath === 'string' && iconThemePath.length > 0 &&
       typeof iconName === 'string' && iconName.length > 0) {
       const gicon = this._getGiconFromThemePath(iconName, iconThemePath, 24);
@@ -384,13 +381,13 @@ export class SniItemButton {
       }
     }
 
-    // 2) default theme lookup using fallbacks (e.g. org.remmina.Remmina-status -> org.remmina.Remmina)
+    // default theme lookup using fallbacks
     if (typeof iconName === 'string' && iconName.length > 0) {
       if (this._setIconFromThemeWithFallbacks(iconName, 24))
         return;
     }
 
-    // 3) pixmap fallback
+    // pixmap fallback
     if (iconPixmaps && this._applyPixmapIcon(iconPixmaps, 24))
       return;
 
