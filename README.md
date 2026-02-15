@@ -2,7 +2,7 @@
 
 A minimal StatusNotifierItem (SNI/AppIndicator-style) host for GNOME Shell that collects tray icons into a popup grid.
 
-![alt text](https://github.com/bens4k/systray/blob/master/screenshots/s_open.png "Open")
+![alt text](https://github.com/bens4k/systray/blob/master/screenshots/img1.png "screenshot 1")
 
 
 ## Supported Gnome versions
